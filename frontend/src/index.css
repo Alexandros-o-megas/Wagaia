@@ -1,0 +1,231 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --blush: #fee3e2;
+  --rose: #f9c7c7;
+  --ink: #000000;
+  --paper: #ffffff;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--blush);
+  color: var(--ink);
+  font-family: Nunito, sans-serif;
+  font-size: 17px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--rose);
+  color: var(--ink);
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: 3px;
+}
+
+.font-display {
+  font-family: Poppins, sans-serif;
+  letter-spacing: -0.03em;
+}
+
+.font-editorial {
+  font-family: Sarabun, sans-serif;
+}
+
+.ink-border {
+  border: 3px solid var(--ink);
+}
+
+.stamp {
+  box-shadow: 6px 6px 0 var(--ink);
+}
+
+.stamp-sm {
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
+.torn {
+  clip-path: polygon(
+    0.8% 2.4%,
+    6% 0.4%,
+    14% 2.1%,
+    22% 0%,
+    31% 2.6%,
+    41% 0.5%,
+    52% 2.2%,
+    63% 0.2%,
+    74% 2.4%,
+    84% 0.3%,
+    93% 1.8%,
+    100% 0.8%,
+    99.2% 12%,
+    100% 24%,
+    98.8% 38%,
+    100% 52%,
+    98.6% 67%,
+    100% 81%,
+    99% 93%,
+    100% 100%,
+    88% 98.4%,
+    76% 100%,
+    64% 97.8%,
+    52% 100%,
+    41% 98.2%,
+    29% 100%,
+    18% 98%,
+    8% 99.4%,
+    0% 97.6%,
+    1.4% 84%,
+    0% 70%,
+    1.6% 54%,
+    0% 40%,
+    1.8% 24%,
+    0% 12%
+  );
+}
+
+.tape {
+  background: repeating-linear-gradient(
+    -18deg,
+    rgba(249, 199, 199, 0.55) 0 8px,
+    rgba(254, 227, 226, 0.4) 8px 16px
+  );
+  border: 2px dashed rgba(0, 0, 0, 0.35);
+}
+
+.newsprint {
+  background-color: #fff8f6;
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 13px,
+      rgba(0, 0, 0, 0.04) 13px,
+      rgba(0, 0, 0, 0.04) 14px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 9px,
+      rgba(0, 0, 0, 0.015) 9px,
+      rgba(0, 0, 0, 0.015) 10px
+    );
+}
+
+.halo {
+  background:
+    radial-gradient(circle at 50% 42%, rgba(249, 199, 199, 0.55) 0 38%, transparent 62%),
+    var(--blush);
+}
+
+.wordmark-bar {
+  background: var(--ink);
+  color: var(--blush);
+  transform: rotate(-2.4deg);
+  border-radius: 2px 40px 8px 36px / 8px 18px 4px 22px;
+}
+
+.skew-left {
+  transform: rotate(-1.5deg);
+}
+
+.skew-right {
+  transform: rotate(1.8deg);
+}
+
+.btn-ink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: var(--ink);
+  color: var(--blush);
+  font-family: Poppins, sans-serif;
+  font-weight: 800;
+  border: 3px solid var(--ink);
+  border-radius: 999px;
+  padding: 0.7rem 1.25rem;
+  text-decoration: none;
+  box-shadow: 4px 4px 0 var(--rose);
+}
+
+.btn-ink:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 5px 5px 0 var(--rose);
+}
+
+.btn-rose {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: var(--rose);
+  color: var(--ink);
+  font-family: Poppins, sans-serif;
+  font-weight: 800;
+  border: 3px solid var(--ink);
+  border-radius: 999px;
+  padding: 0.7rem 1.25rem;
+  text-decoration: none;
+  box-shadow: 4px 4px 0 var(--ink);
+}
+
+.btn-rose:hover {
+  transform: translate(-1px, -1px);
+}
+
+.btn-paper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: Nunito, sans-serif;
+  font-weight: 800;
+  border: 3px solid var(--ink);
+  border-radius: 999px;
+  padding: 0.65rem 1.1rem;
+  text-decoration: none;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  padding: 0.2rem 0.7rem;
+  background: var(--paper);
+  font-weight: 700;
+  font-size: 0.82rem;
+}
+
+.skip-link {
+  position: absolute;
+  left: -999px;
+  top: 0;
+  background: var(--ink);
+  color: var(--blush);
+  padding: 0.6rem 1rem;
+  z-index: 50;
+}
+
+.skip-link:focus {
+  left: 1rem;
+  top: 1rem;
+}

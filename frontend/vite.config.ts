@@ -1,6 +1,9 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 export default defineConfig({
   plugins: [react()],
@@ -13,7 +16,7 @@ export default defineConfig({
     allowedHosts: [".monkeycode-ai.live"],
     proxy: {
       "/api": {
-        target: "http://127.0.0.1:3001",
+        target: `http://127.0.0.1:${process.env.PORT || 3001}`,
         changeOrigin: true,
       },
     },

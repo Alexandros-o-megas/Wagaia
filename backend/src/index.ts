@@ -16,6 +16,10 @@ import {
 } from "./store.js";
 import type { CollectionName } from "./types.js";
 
+import dotenv from "dotenv";
+
+dotenv.config();
+
 const PORT = Number(process.env.PORT || 3001);
 const JWT_SECRET = process.env.JWT_SECRET || "wagaia-dev-secret";
 

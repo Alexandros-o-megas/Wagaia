@@ -253,3 +253,15 @@ export function adminMe() {
     headers: authHeaders(),
   });
 }
+
+export function adminChangePassword(payload: {
+  currentPassword: string;
+  nextPassword: string;
+  confirmPassword: string;
+}) {
+  return request<{ ok: boolean; message: string }>("/api/admin/password", {
+    method: "PUT",
+    headers: authHeaders(),
+    body: JSON.stringify(payload),
+  });
+}

@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useMemo, useState, type ReactNode } from "react";
 import { Link, Navigate, Route, Routes, useNavigate, useParams } from "react-router-dom";
 import {
   adminArchive,
+  adminChangePassword,
   adminCreate,
   adminGet,
   adminInbox,
@@ -141,6 +142,7 @@ function Shell({ children }: { children: ReactNode }) {
           <Link to="/admin">Início</Link>
           <Link to="/admin/caixa">Caixa de relatos</Link>
           <Link to="/admin/definicoes">Definições</Link>
+          <Link to="/admin/senha">Senha</Link>
           <Link to="/">Ver site</Link>
         </nav>
         <button
@@ -397,6 +399,88 @@ function SettingsPage() {
   );
 }
 
+function PasswordPage() {
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [nextPassword, setNextPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  async function onSubmit(event: FormEvent) {
+    event.preventDefault();
+    setMessage("");
+    setError("");
+    if (nextPassword !== confirmPassword) {
+      setError("A confirmação não coincide com a nova palavra-passe.");
+      return;
+    }
+    setSaving(true);
+    try {
+      const res = await adminChangePassword({ currentPassword, nextPassword, confirmPassword });
+      setMessage(res.message);
+      setCurrentPassword("");
+      setNextPassword("");
+      setConfirmPassword("");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Não foi possível alterar a senha.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <Shell>
+      <form onSubmit={onSubmit} className="max-w-lg mx-auto px-4 py-8 grid gap-4">
+        <h1 className="font-display text-4xl">Alterar senha</h1>
+        <p className="font-editorial">
+          A nova palavra-passe precisa de pelo menos 10 caracteres e tem de ser diferente da actual.
+        </p>
+        <label className="grid gap-1">
+          <span className="font-extrabold">Palavra-passe actual</span>
+          <input
+            type="password"
+            className="ink-border p-2"
+            autoComplete="current-password"
+            value={currentPassword}
+            onChange={(e) => setCurrentPassword(e.target.value)}
+            required
+          />
+        </label>
+        <label className="grid gap-1">
+          <span className="font-extrabold">Nova palavra-passe</span>
+          <input
+            type="password"
+            className="ink-border p-2"
+            autoComplete="new-password"
+            minLength={10}
+            value={nextPassword}
+            onChange={(e) => setNextPassword(e.target.value)}
+            required
+          />
+        </label>
+        <label className="grid gap-1">
+          <span className="font-extrabold">Confirmar nova palavra-passe</span>
+          <input
+            type="password"
+            className="ink-border p-2"
+            autoComplete="new-password"
+            minLength={10}
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required
+          />
+        </label>
+        {error ? <p role="alert">{error}</p> : null}
+        {message ? <p role="status">{message}</p> : null}
+        <button className="btn-ink" type="submit" disabled={saving}>
+          {saving ? "A guardar…" : "Actualizar senha"}
+        </button>
+      </form>
+    </Shell>
+  );
+}
+
 export function AdminApp() {
   return (
     <>
@@ -424,6 +508,14 @@ export function AdminApp() {
           element={
             <Guard>
               <SettingsPage />
+            </Guard>
+          }
+        />
+        <Route
+          path="senha"
+          element={
+            <Guard>
+              <PasswordPage />
             </Guard>
           }
         />

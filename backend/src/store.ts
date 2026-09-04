@@ -131,3 +131,20 @@ export function markSubmissionRead(id: string) {
   persist();
   return row;
 }
+
+export function changePassword(email: string, currentPassword: string, nextPassword: string) {
+  const admin = db.admins.find((row) => row.email === email);
+  if (!admin) return { ok: false as const, error: "Conta não encontrada." };
+  if (!verifyPassword(currentPassword, admin.passwordHash)) {
+    return { ok: false as const, error: "Palavra-passe actual incorrecta." };
+  }
+  if (nextPassword.length < 10) {
+    return { ok: false as const, error: "A nova palavra-passe precisa de pelo menos 10 caracteres." };
+  }
+  if (currentPassword === nextPassword) {
+    return { ok: false as const, error: "A nova palavra-passe tem de ser diferente da actual." };
+  }
+  admin.passwordHash = hashPassword(nextPassword);
+  persist();
+  return { ok: true as const };
+}

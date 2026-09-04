@@ -1,13 +1,10 @@
 import cors from "cors";
 import express from "express";
 import jwt from "jsonwebtoken";
-import dotenv from "dotenv";
-
-dotenv.config();
-
 import {
   addSubmission,
   archiveRecord,
+  changePassword,
   createRecord,
   getCollection,
   getDb,
@@ -40,6 +37,31 @@ const COLLECTIONS: CollectionName[] = [
 ];
 
 loadDb();
+
+const LOGIN_MAX_ATTEMPTS = 3;
+const LOGIN_WINDOW_MS = 20 * 60 * 1000;
+
+type LoginAttempt = { fails: number; lockedUntil: number };
+const loginAttempts = new Map<string, LoginAttempt>();
+
+function clientIp(req: express.Request) {
+  const forwarded = String(req.headers["x-forwarded-for"] || "");
+  return forwarded.split(",")[0].trim() || req.ip || "unknown";
+}
+
+function loginKey(email: string, req: express.Request) {
+  return `${email}|${clientIp(req)}`;
+}
+
+function remainingLockMs(entry: LoginAttempt | undefined) {
+  if (!entry || entry.lockedUntil <= Date.now()) return 0;
+  return entry.lockedUntil - Date.now();
+}
+
+function formatLock(ms: number) {
+  const minutes = Math.max(1, Math.ceil(ms / 60000));
+  return minutes === 1 ? "1 minuto" : `${minutes} minutos`;
+}
 
 const app = express();
 app.use(cors());
@@ -123,11 +145,41 @@ app.post("/api/submissions", (req, res) => {
 app.post("/api/auth/login", (req, res) => {
   const email = String(req.body?.email || "").trim().toLowerCase();
   const password = String(req.body?.password || "");
-  const admin = getDb().admins.find((row) => row.email === email);
-  if (!admin || !verifyPassword(password, admin.passwordHash)) {
-    res.status(401).json({ error: "Credenciais incorrectas." });
+  const key = loginKey(email || "unknown", req);
+  const current = loginAttempts.get(key);
+  const lockedFor = remainingLockMs(current);
+  if (lockedFor > 0) {
+    res.status(429).json({
+      error: `Acesso bloqueado após 3 tentativas. Tente novamente dentro de ${formatLock(lockedFor)}.`,
+      retryAfterMs: lockedFor,
+    });
     return;
   }
+  if (current && current.lockedUntil && current.lockedUntil <= Date.now()) {
+    loginAttempts.delete(key);
+  }
+
+  const admin = getDb().admins.find((row) => row.email === email);
+  if (!admin || !verifyPassword(password, admin.passwordHash)) {
+    const prev = loginAttempts.get(key) || { fails: 0, lockedUntil: 0 };
+    const fails = prev.fails + 1;
+    if (fails >= LOGIN_MAX_ATTEMPTS) {
+      loginAttempts.set(key, { fails, lockedUntil: Date.now() + LOGIN_WINDOW_MS });
+      res.status(429).json({
+        error: "Acesso bloqueado após 3 tentativas. Tente novamente dentro de 20 minutos.",
+        retryAfterMs: LOGIN_WINDOW_MS,
+      });
+      return;
+    }
+    loginAttempts.set(key, { fails, lockedUntil: 0 });
+    const left = LOGIN_MAX_ATTEMPTS - fails;
+    res.status(401).json({
+      error: `Credenciais incorrectas. Restam ${left} tentativa${left === 1 ? "" : "s"} antes do bloqueio de 20 minutos.`,
+      attemptsLeft: left,
+    });
+    return;
+  }
+  loginAttempts.delete(key);
   const token = jwt.sign({ email: admin.email, name: admin.name }, JWT_SECRET, {
     expiresIn: "12h",
   });
@@ -138,6 +190,27 @@ app.get("/api/admin/me", auth, (req, res) => {
   const email = (req as express.Request & { adminEmail?: string }).adminEmail;
   const admin = getDb().admins.find((row) => row.email === email);
   res.json({ email: admin?.email, name: admin?.name });
+});
+
+app.put("/api/admin/password", auth, (req, res) => {
+  const email = (req as express.Request & { adminEmail?: string }).adminEmail || "";
+  const currentPassword = String(req.body?.currentPassword || "");
+  const nextPassword = String(req.body?.nextPassword || "");
+  const confirmPassword = String(req.body?.confirmPassword || "");
+  if (!currentPassword || !nextPassword) {
+    res.status(400).json({ error: "Indique a palavra-passe actual e a nova." });
+    return;
+  }
+  if (nextPassword !== confirmPassword) {
+    res.status(400).json({ error: "A confirmação não coincide com a nova palavra-passe." });
+    return;
+  }
+  const result = changePassword(email, currentPassword, nextPassword);
+  if (!result.ok) {
+    res.status(400).json({ error: result.error });
+    return;
+  }
+  res.json({ ok: true, message: "Palavra-passe actualizada." });
 });
 
 app.get("/api/admin/settings", auth, (_req, res) => {
